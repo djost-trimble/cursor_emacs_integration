@@ -1,0 +1,64 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build output
+bridge/dist/
+bridge/build/
+*.js.map
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# Emacs
+*.elc
+*~
+\#*\#
+.\#*
+auto-save-list
+tramp
+.\#*
+*.dat
+*_archive
+*_flymake.*
+flycheck_*.el
+.dir-locals.el
+.projectile
+
+# Session history
+cursor-chat-history.el
+.cursor-sessions.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.bak
