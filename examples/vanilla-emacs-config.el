@@ -46,6 +46,8 @@
 (global-set-key (kbd "C-c c o") 'cursor-optimize-function)
 (global-set-key (kbd "C-c c t") 'cursor-generate-tests)
 (global-set-key (kbd "C-c c d") 'cursor-generate-docstring)
+(global-set-key (kbd "C-c c v") 'cursor-show-context)
+(global-set-key (kbd "C-c c S") 'cursor-set-context-scope)
 
 ;; Session management
 (global-set-key (kbd "C-c c s") 'cursor-start-session)

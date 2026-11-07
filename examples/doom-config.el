@@ -47,6 +47,8 @@
        :desc "Optimize function" "o" #'cursor-optimize-function
        :desc "Generate tests" "t" #'cursor-generate-tests
        :desc "Generate docstring" "d" #'cursor-generate-docstring
+       :desc "View context" "v" #'cursor-show-context
+       :desc "Set context scope" "S" #'cursor-set-context-scope
        :desc "Start session" "s" #'cursor-start-session
        :desc "Resume session" "r" #'cursor-resume-session
        :desc "List sessions" "l" #'cursor-list-sessions
