@@ -6,6 +6,7 @@ import string
 import time
 from typing import Optional, Dict, Any, List, Callable
 from models import Session, SessionOptions, AgentResponse
+import requests
 
 
 class AgentClient:
@@ -233,3 +234,219 @@ class AgentClient:
         """Async sleep helper."""
         import asyncio
         await asyncio.sleep(seconds)
+
+    def _get_auth_headers(self) -> Dict[str, str]:
+        """Get authorization headers for cloud API requests."""
+        if not self.api_key:
+            raise ValueError("CURSOR_API_KEY is required for cloud operations")
+        return {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+    async def list_cloud_sessions(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
+        """List user's cloud sessions/projects.
+        
+        Args:
+            limit: Maximum number of sessions to return
+            offset: Pagination offset
+            
+        Returns:
+            Dictionary containing sessions list and pagination info
+        """
+        try:
+            headers = self._get_auth_headers()
+            params = {'limit': limit, 'offset': offset}
+            
+            response = requests.get(
+                f'{self.endpoint}/cloud/sessions',
+                headers=headers,
+                params=params,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 401:
+                raise ValueError("Invalid API key")
+            else:
+                print(f"Cloud API error: {response.status_code} - {response.text}")
+                return {
+                    'sessions': [],
+                    'total': 0,
+                    'error': f'API returned status {response.status_code}'
+                }
+        except requests.exceptions.RequestException as e:
+            print(f"Network error listing cloud sessions: {e}")
+            return {
+                'sessions': [],
+                'total': 0,
+                'error': str(e)
+            }
+
+    async def fetch_cloud_session_context(self, cloud_session_id: str) -> Dict[str, Any]:
+        """Fetch context from a cloud session.
+        
+        Args:
+            cloud_session_id: ID of the cloud session
+            
+        Returns:
+            Dictionary containing session context data
+        """
+        try:
+            headers = self._get_auth_headers()
+            
+            response = requests.get(
+                f'{self.endpoint}/cloud/sessions/{cloud_session_id}/context',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                raise ValueError(f"Cloud session {cloud_session_id} not found")
+            elif response.status_code == 401:
+                raise ValueError("Invalid API key")
+            else:
+                print(f"Cloud API error: {response.status_code} - {response.text}")
+                return {
+                    'error': f'API returned status {response.status_code}'
+                }
+        except requests.exceptions.RequestException as e:
+            print(f"Network error fetching cloud session context: {e}")
+            return {
+                'error': str(e)
+            }
+
+    async def fetch_cloud_session_history(self, cloud_session_id: str) -> Dict[str, Any]:
+        """Get session history and files from a cloud session.
+        
+        Args:
+            cloud_session_id: ID of the cloud session
+            
+        Returns:
+            Dictionary containing message history and file list
+        """
+        try:
+            headers = self._get_auth_headers()
+            
+            response = requests.get(
+                f'{self.endpoint}/cloud/sessions/{cloud_session_id}/history',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                raise ValueError(f"Cloud session {cloud_session_id} not found")
+            elif response.status_code == 401:
+                raise ValueError("Invalid API key")
+            else:
+                print(f"Cloud API error: {response.status_code} - {response.text}")
+                return {
+                    'messages': [],
+                    'files': [],
+                    'error': f'API returned status {response.status_code}'
+                }
+        except requests.exceptions.RequestException as e:
+            print(f"Network error fetching cloud session history: {e}")
+            return {
+                'messages': [],
+                'files': [],
+                'error': str(e)
+            }
+
+    async def import_cloud_session(self, cloud_session_id: str) -> Session:
+        """Import a cloud session as a local session.
+        
+        Args:
+            cloud_session_id: ID of the cloud session to import
+            
+        Returns:
+            New local Session object
+        """
+        context = await self.fetch_cloud_session_context(cloud_session_id)
+        history = await self.fetch_cloud_session_history(cloud_session_id)
+        
+        if 'error' in context or 'error' in history:
+            raise ValueError(f"Failed to import cloud session: {context.get('error') or history.get('error')}")
+        
+        session_id = self._generate_session_id()
+        now = int(time.time() * 1000)
+        
+        session = Session(
+            id=session_id,
+            model=context.get('model', 'claude-4-sonnet'),
+            workspace=context.get('workspace'),
+            context={
+                'cloud_session_id': cloud_session_id,
+                'workspace': context.get('workspace'),
+                'files': history.get('files', []),
+                'imported_from': 'cloud',
+                'imported_at': now
+            },
+            created_at=context.get('created_at', now),
+            last_active=now
+        )
+        
+        self.sessions[session_id] = {
+            **session.__dict__,
+            'messages': history.get('messages', []),
+            'cloud_session_id': cloud_session_id
+        }
+        
+        print(f"Imported cloud session {cloud_session_id} as local session {session_id}")
+        return session
+
+    async def sync_to_cloud(self, session_id: str) -> Dict[str, Any]:
+        """Upload local session to cloud (if API supports).
+        
+        Args:
+            session_id: ID of the local session to upload
+            
+        Returns:
+            Dictionary with cloud session ID and status
+        """
+        session = self.sessions.get(session_id)
+        if not session:
+            raise ValueError(f"Session {session_id} not found")
+        
+        try:
+            headers = self._get_auth_headers()
+            
+            payload = {
+                'model': session['model'],
+                'workspace': session.get('workspace'),
+                'context': session['context'],
+                'messages': session.get('messages', []),
+                'created_at': session['created_at']
+            }
+            
+            response = requests.post(
+                f'{self.endpoint}/cloud/sessions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 201:
+                result = response.json()
+                session['cloud_session_id'] = result.get('cloud_session_id')
+                print(f"Synced session {session_id} to cloud: {result.get('cloud_session_id')}")
+                return result
+            elif response.status_code == 401:
+                raise ValueError("Invalid API key")
+            else:
+                print(f"Cloud API error: {response.status_code} - {response.text}")
+                return {
+                    'error': f'API returned status {response.status_code}',
+                    'success': False
+                }
+        except requests.exceptions.RequestException as e:
+            print(f"Network error syncing to cloud: {e}")
+            return {
+                'error': str(e),
+                'success': False
+            }

@@ -54,7 +54,11 @@
        (:prefix ("p" . "sync")
         :desc "Push changes" "p" #'cursor-sync-push
         :desc "Pull changes" "P" #'cursor-sync-pull
-        :desc "Sync status" "s" #'cursor-sync-status)))
+        :desc "Sync status" "s" #'cursor-sync-status)
+       (:prefix ("C" . "cloud")
+        :desc "List cloud sessions" "L" #'cursor-list-cloud-sessions
+        :desc "Import cloud session" "I" #'cursor-import-cloud-session
+        :desc "Sync to cloud" "S" #'cursor-sync-to-cloud)))
 
 ;;; Evil Mode Keybindings
 ;; Direct keybindings for normal and visual modes
@@ -203,6 +207,7 @@
   (which-key-add-key-based-replacements
     "SPC a" "cursor agent"
     "SPC a p" "sync"
+    "SPC a C" "cloud"
     "SPC a s" "start session"
     "SPC a r" "resume session"))
 

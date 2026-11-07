@@ -8,6 +8,7 @@ A comprehensive Doom Emacs package that integrates Cursor's AI agent system dire
 - **Chat Interface**: Dedicated chat buffer with markdown rendering and syntax highlighting
 - **Bidirectional Sync**: Real-time file synchronization between Emacs and agents
 - **Session Management**: Create, resume, and manage multiple agent sessions
+- **Cloud Context Integration**: Access and import sessions from Cursor web UI
 - **Conflict Resolution**: Smart handling of concurrent edits
 - **WebSocket Support**: Real-time updates and notifications
 - **Doom Integration**: Native Doom Emacs module with evil-mode keybindings
@@ -163,6 +164,12 @@ python3 server.py
 - `M-x cursor-list-sessions` (C-c a l): List all sessions
 - `M-x cursor-end-session` (C-c a q): End current session
 
+### Cloud Context Integration
+
+- `M-x cursor-list-cloud-sessions` (C-c a C L): List cloud sessions from Cursor web UI
+- `M-x cursor-import-cloud-session` (C-c a C I): Import a cloud session locally
+- `M-x cursor-sync-to-cloud` (C-c a C S): Upload local session to cloud
+
 ### File Synchronization
 
 - `M-x cursor-sync-push` (C-c a p): Push buffer to agent
@@ -205,7 +212,17 @@ In visual mode:
 
 ### Authentication
 
-Store your API key securely using `auth-source`:
+The Cursor API key is required for cloud context integration features. Store your API key securely:
+
+#### Method 1: Environment Variable (.env file)
+
+Add to `bridge/.env`:
+
+```bash
+CURSOR_API_KEY=your_api_key_here
+```
+
+#### Method 2: Auth-source (Emacs)
 
 1. Create `~/.authinfo.gpg`:
 
@@ -218,6 +235,15 @@ machine cursor-api password your_api_key_here
 ```bash
 security add-generic-password -a $USER -s cursor-api -w "your_api_key_here"
 ```
+
+#### Getting Your API Key
+
+1. Log in to [Cursor web UI](https://cursor.com)
+2. Navigate to Settings → API Keys
+3. Generate a new API key
+4. Copy and store it securely using one of the methods above
+
+**Note**: The API key is required for cloud features (listing, importing sessions, syncing to cloud). Local sessions work without an API key.
 
 ## Examples
 
@@ -247,6 +273,33 @@ M-x cursor-generate-tests
 ```
 
 The agent will generate comprehensive test cases.
+
+### Import Cloud Session
+
+```elisp
+;; List your cloud sessions:
+M-x cursor-list-cloud-sessions
+
+;; In the cloud sessions buffer:
+;; Press RET or 'i' on a session to import it
+;; Press 'c' to view context
+;; Press 'h' to view history
+;; Press 'r' to refresh the list
+
+;; Or import directly by ID:
+M-x cursor-import-cloud-session RET cloud-session-id
+```
+
+The cloud session will be imported as a local session with all context and history.
+
+### Sync Local Session to Cloud
+
+```elisp
+;; Upload your current local session to the cloud:
+M-x cursor-sync-to-cloud
+```
+
+This creates a backup of your local session in the Cursor cloud (if the API supports it).
 
 ## Troubleshooting
 
@@ -309,6 +362,24 @@ M-x byte-recompile-directory RET /path/to/elisp RET
 ## API Reference
 
 See the [design document](../docs/emacs-integration-design.md) for detailed API specifications.
+
+### Cloud API Implementation
+
+The cloud context integration implements a reasonable API design based on expected Cursor cloud functionality. The API endpoints may need updates when official Cursor cloud APIs are documented:
+
+**Implemented Endpoints:**
+- `GET /cloud/sessions` - List user's cloud sessions
+- `GET /cloud/sessions/{id}/context` - Fetch session context
+- `GET /cloud/sessions/{id}/history` - Get session history and files
+- `POST /cloud/sessions` - Upload local session to cloud
+
+**Bridge Service Endpoints:**
+- `GET /api/cloud/sessions` - List cloud sessions (with limit/offset)
+- `GET /api/cloud/sessions/{id}/context` - Get session context
+- `POST /api/sessions/import/{cloud_id}` - Import cloud session locally
+- `POST /api/sessions/{id}/sync-to-cloud` - Upload session to cloud
+
+All cloud operations require `CURSOR_API_KEY` authentication. The implementation gracefully handles API errors and provides fallback responses.
 
 ## Contributing
 

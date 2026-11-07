@@ -269,6 +269,93 @@ class CursorBridge:
                 print(f"Error updating config: {e}")
                 return jsonify({'error': 'Failed to update config'}), 500
 
+        @self.app.route('/api/cloud/sessions', methods=['GET'])
+        async def list_cloud_sessions():
+            try:
+                limit = request.args.get('limit', 50, type=int)
+                offset = request.args.get('offset', 0, type=int)
+                
+                result = await self.agent_client.list_cloud_sessions(limit, offset)
+                return jsonify(result)
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 401
+            except Exception as e:
+                print(f"Error listing cloud sessions: {e}")
+                return jsonify({'error': 'Failed to list cloud sessions'}), 500
+
+        @self.app.route('/api/cloud/sessions/<cloud_session_id>/context', methods=['GET'])
+        async def get_cloud_session_context(cloud_session_id: str):
+            try:
+                context = await self.agent_client.fetch_cloud_session_context(cloud_session_id)
+                
+                if 'error' in context:
+                    return jsonify(context), 500
+                
+                return jsonify(context)
+            except ValueError as e:
+                if 'not found' in str(e):
+                    return jsonify({'error': str(e)}), 404
+                return jsonify({'error': str(e)}), 401
+            except Exception as e:
+                print(f"Error fetching cloud session context: {e}")
+                return jsonify({'error': 'Failed to fetch context'}), 500
+
+        @self.app.route('/api/cloud/sessions/<cloud_session_id>/history', methods=['GET'])
+        async def get_cloud_session_history(cloud_session_id: str):
+            try:
+                history = await self.agent_client.fetch_cloud_session_history(cloud_session_id)
+                
+                if 'error' in history:
+                    return jsonify(history), 500
+                
+                return jsonify(history)
+            except ValueError as e:
+                if 'not found' in str(e):
+                    return jsonify({'error': str(e)}), 404
+                return jsonify({'error': str(e)}), 401
+            except Exception as e:
+                print(f"Error fetching cloud session history: {e}")
+                return jsonify({'error': 'Failed to fetch history'}), 500
+
+        @self.app.route('/api/sessions/import/<cloud_session_id>', methods=['POST'])
+        async def import_cloud_session(cloud_session_id: str):
+            try:
+                session = await self.agent_client.import_cloud_session(cloud_session_id)
+                self.session_store.save(session)
+                
+                if session.workspace:
+                    self.sync_manager.watch_path(session.workspace)
+                
+                return jsonify({
+                    'sessionId': session.id,
+                    'model': session.model,
+                    'cloudSessionId': cloud_session_id,
+                    'workspace': session.workspace,
+                    'created': time.strftime('%Y-%m-%dT%H:%M:%S.000Z',
+                                           time.gmtime(session.created_at / 1000))
+                })
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+            except Exception as e:
+                print(f"Error importing cloud session: {e}")
+                return jsonify({'error': 'Failed to import cloud session'}), 500
+
+        @self.app.route('/api/sessions/<session_id>/sync-to-cloud', methods=['POST'])
+        async def sync_session_to_cloud(session_id: str):
+            try:
+                result = await self.agent_client.sync_to_cloud(session_id)
+                
+                if result.get('success', True) and not result.get('error'):
+                    self.session_store.update_last_active(session_id)
+                    return jsonify(result)
+                else:
+                    return jsonify(result), 500
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+            except Exception as e:
+                print(f"Error syncing to cloud: {e}")
+                return jsonify({'error': 'Failed to sync to cloud'}), 500
+
     def _setup_websocket(self) -> None:
         """Set up WebSocket event handlers."""
 

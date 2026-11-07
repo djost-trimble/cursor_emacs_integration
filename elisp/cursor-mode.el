@@ -314,6 +314,151 @@
                          (date-to-time time-string))
     "Unknown"))
 
+;;; Cloud Session Management
+
+;;;###autoload
+(defun cursor-list-cloud-sessions ()
+  "List cloud sessions from Cursor web UI."
+  (interactive)
+  (let ((response (cursor-bridge--http-get "/api/cloud/sessions")))
+    (if (and response (not (alist-get 'error response)))
+        (let ((sessions (alist-get 'sessions response))
+              (total (alist-get 'total response)))
+          (with-current-buffer (get-buffer-create "*Cursor Cloud Sessions*")
+            (cursor-cloud-sessions-mode)
+            (let ((inhibit-read-only t))
+              (erase-buffer)
+              (insert (propertize "Cursor Cloud Sessions\n\n" 'face 'bold))
+              (insert (format "Total: %d sessions\n\n" total))
+              (insert (format "%-30s %-20s %-20s %s\n"
+                            "Cloud Session ID" "Model" "Workspace" "Created"))
+              (insert (make-string 100 ?─) "\n")
+              (dolist (session sessions)
+                (let ((cloud-id (alist-get 'cloudSessionId session))
+                      (model (alist-get 'model session))
+                      (workspace (or (alist-get 'workspace session) "N/A"))
+                      (created (alist-get 'created session)))
+                  (insert (propertize (format "%-30s" cloud-id)
+                                    'cloud-session-id cloud-id)
+                          (format " %-20s %-20s %s\n"
+                                model
+                                (file-name-nondirectory
+                                 (directory-file-name workspace))
+                                created))))
+              (goto-char (point-min)))
+            (display-buffer (current-buffer))))
+      (message "Failed to retrieve cloud sessions: %s"
+              (or (alist-get 'error response) "Unknown error")))))
+
+(define-derived-mode cursor-cloud-sessions-mode special-mode "Cursor-Cloud-Sessions"
+  "Major mode for listing Cursor cloud sessions."
+  (setq truncate-lines t)
+  (define-key cursor-cloud-sessions-mode-map (kbd "RET") 'cursor-cloud-session-import-at-point)
+  (define-key cursor-cloud-sessions-mode-map (kbd "i") 'cursor-cloud-session-import-at-point)
+  (define-key cursor-cloud-sessions-mode-map (kbd "c") 'cursor-cloud-session-show-context)
+  (define-key cursor-cloud-sessions-mode-map (kbd "h") 'cursor-cloud-session-show-history)
+  (define-key cursor-cloud-sessions-mode-map (kbd "r") 'cursor-list-cloud-sessions))
+
+(defun cursor-cloud-session-import-at-point ()
+  "Import cloud session at point."
+  (interactive)
+  (let ((cloud-id (get-text-property (point) 'cloud-session-id)))
+    (if cloud-id
+        (cursor-import-cloud-session cloud-id)
+      (message "No cloud session at point"))))
+
+(defun cursor-cloud-session-show-context ()
+  "Show context for cloud session at point."
+  (interactive)
+  (let ((cloud-id (get-text-property (point) 'cloud-session-id)))
+    (if cloud-id
+        (let ((response (cursor-bridge--http-get
+                        (format "/api/cloud/sessions/%s/context" cloud-id))))
+          (if (and response (not (alist-get 'error response)))
+              (with-current-buffer (get-buffer-create "*Cursor Cloud Context*")
+                (erase-buffer)
+                (insert (format "Cloud Session: %s\n\n" cloud-id))
+                (insert (pp-to-string response))
+                (goto-char (point-min))
+                (display-buffer (current-buffer)))
+            (message "Failed to fetch context: %s"
+                    (or (alist-get 'error response) "Unknown error"))))
+      (message "No cloud session at point"))))
+
+(defun cursor-cloud-session-show-history ()
+  "Show history for cloud session at point."
+  (interactive)
+  (let ((cloud-id (get-text-property (point) 'cloud-session-id)))
+    (if cloud-id
+        (let ((response (cursor-bridge--http-get
+                        (format "/api/cloud/sessions/%s/history" cloud-id))))
+          (if (and response (not (alist-get 'error response)))
+              (with-current-buffer (get-buffer-create "*Cursor Cloud History*")
+                (erase-buffer)
+                (insert (format "Cloud Session History: %s\n\n" cloud-id))
+                (let ((messages (alist-get 'messages response))
+                      (files (alist-get 'files response)))
+                  (insert (format "Messages: %d\n" (length messages)))
+                  (insert (format "Files: %d\n\n" (length files)))
+                  (when files
+                    (insert "Files:\n")
+                    (dolist (file files)
+                      (insert (format "  - %s\n" file)))
+                    (insert "\n"))
+                  (when messages
+                    (insert "Recent Messages:\n")
+                    (dolist (msg (seq-take messages 10))
+                      (insert (format "\n[%s] %s:\n%s\n"
+                                    (alist-get 'timestamp msg)
+                                    (alist-get 'role msg)
+                                    (truncate-string-to-width
+                                     (alist-get 'content msg) 200 nil nil "..."))))))
+                (goto-char (point-min))
+                (display-buffer (current-buffer)))
+            (message "Failed to fetch history: %s"
+                    (or (alist-get 'error response) "Unknown error"))))
+      (message "No cloud session at point"))))
+
+;;;###autoload
+(defun cursor-import-cloud-session (cloud-session-id)
+  "Import a cloud session CLOUD-SESSION-ID as a local session."
+  (interactive "sCloud Session ID: ")
+  (let ((response (cursor-bridge--http-post
+                  (format "/api/sessions/import/%s" cloud-session-id)
+                  nil)))
+    (if (and response (not (alist-get 'error response)))
+        (let ((session-id (alist-get 'sessionId response))
+              (model (alist-get 'model response))
+              (workspace (alist-get 'workspace response)))
+          (setq cursor--current-session-id session-id)
+          (puthash session-id response cursor--sessions)
+          (message "Imported cloud session as local session: %s (model: %s)"
+                  session-id model)
+          (when workspace
+            (message "Workspace: %s" workspace))
+          session-id)
+      (message "Failed to import cloud session: %s"
+              (or (alist-get 'error response) "Unknown error"))
+      nil)))
+
+;;;###autoload
+(defun cursor-sync-to-cloud (&optional session-id)
+  "Upload local session SESSION-ID to cloud (if API supports).
+If SESSION-ID is nil, uses the current session."
+  (interactive)
+  (cursor--ensure-session)
+  (let* ((session-id (or session-id cursor--current-session-id))
+         (response (cursor-bridge--http-post
+                   (format "/api/sessions/%s/sync-to-cloud" session-id)
+                   nil)))
+    (if (and response (not (alist-get 'error response)))
+        (let ((cloud-session-id (alist-get 'cloudSessionId response)))
+          (message "Synced session to cloud: %s" cloud-session-id)
+          cloud-session-id)
+      (message "Failed to sync to cloud: %s"
+              (or (alist-get 'error response) "Unknown error"))
+      nil)))
+
 (provide 'cursor-mode)
 
 ;;; cursor-mode.el ends here
