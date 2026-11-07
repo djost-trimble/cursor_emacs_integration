@@ -12,7 +12,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 
-from types import Config, SessionOptions
+from models import Config, SessionOptions
 from agent_client import AgentClient
 from sync_manager import SyncManager
 from session_store import SessionStore

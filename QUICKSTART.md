@@ -6,20 +6,27 @@ Get up and running with Cursor Emacs Integration in 5 minutes.
 
 - Emacs 27.1+ 
 - Python 3.8+
+- [uv](https://github.com/astral-sh/uv) - Fast Python package installer
 - Doom Emacs (optional but recommended)
 
 ## Installation Steps
 
-### 1. Install Bridge Service
+### 1. Install uv
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### 2. Install Bridge Service
 
 ```bash
 cd /path/to/package/bridge
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv venv
+source .venv/bin/activate
+uv pip install -e .
 ```
 
-### 2. Configure API Key
+### 3. Configure API Key
 
 ```bash
 cp .env.example .env
@@ -30,7 +37,7 @@ Edit `.env` and add your Cursor API key:
 CURSOR_API_KEY=your_key_here
 ```
 
-### 3. Install Emacs Package
+### 4. Install Emacs Package
 
 #### Doom Emacs
 
@@ -61,7 +68,7 @@ Add to `~/.emacs.d/init.el`:
 (global-cursor-mode 1)
 ```
 
-### 4. Start Bridge Service
+### 5. Start Bridge Service
 
 ```bash
 cd /path/to/package/bridge
@@ -70,11 +77,11 @@ cd /path/to/package/bridge
 
 Or manually:
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 python3 server.py
 ```
 
-### 5. Test in Emacs
+### 6. Test in Emacs
 
 Restart Emacs, then:
 

@@ -3,7 +3,7 @@
 import sqlite3
 import json
 from typing import Optional, List
-from types import Session
+from models import Session
 
 
 class SessionStore:
@@ -11,7 +11,15 @@ class SessionStore:
 
     def __init__(self, db_path: str):
         """Initialize session store with database path."""
+        import os
+        
         self.db_path = db_path
+        
+        # Ensure directory exists
+        db_dir = os.path.dirname(db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._initialize_database()

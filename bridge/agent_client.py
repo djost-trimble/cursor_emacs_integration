@@ -5,7 +5,7 @@ import random
 import string
 import time
 from typing import Optional, Dict, Any, List, Callable
-from types import Session, SessionOptions, AgentResponse
+from models import Session, SessionOptions, AgentResponse
 
 
 class AgentClient:
