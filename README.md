@@ -156,6 +156,11 @@ python3 server.py
 - `M-x cursor-explain-region` (C-c c e): Explain selected code
 - `M-x cursor-refactor-region` (C-c c R): Refactor selected code
 
+### Context Management
+
+- `M-x cursor-show-context` (C-c c v): View what context will be sent to the agent
+- `M-x cursor-set-context-scope` (C-c c S): Set context scope (buffer/region/function/project)
+
 ### Session Management
 
 - `M-x cursor-start-session` (C-c c s): Create new session
