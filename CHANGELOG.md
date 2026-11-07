@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Doom Emacs Integration
 - Native Doom module structure
-- Leader key bindings (SPC a prefix)
+- Leader key bindings (SPC c prefix)
 - Evil mode keybindings (g a, g f, g e, g c)
 - Which-key integration
 - Popup window rules

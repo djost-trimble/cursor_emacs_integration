@@ -69,9 +69,9 @@
 
 (defvar cursor-sync-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c a p") 'cursor-sync-push)
-    (define-key map (kbd "C-c a P") 'cursor-sync-pull)
-    (define-key map (kbd "C-c a S") 'cursor-sync-status)
+    (define-key map (kbd "C-c c p") 'cursor-sync-push)
+    (define-key map (kbd "C-c c P") 'cursor-sync-pull)
+    (define-key map (kbd "C-c c S") 'cursor-sync-status)
     map)
   "Keymap for `cursor-sync-mode'.")
 

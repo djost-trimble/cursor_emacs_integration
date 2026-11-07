@@ -86,7 +86,7 @@ python3 server.py
 Restart Emacs, then:
 
 1. Open a code file
-2. Press `SPC a a` (or `M-x cursor-ask-agent`)
+2. Press `SPC c k` (or `M-x cursor-ask-agent`)
 3. Type: "Explain this file"
 4. Watch the magic happen!
 
@@ -94,12 +94,25 @@ Restart Emacs, then:
 
 | Key | Command | Description |
 |-----|---------|-------------|
-| `SPC a a` | cursor-ask-agent | Ask anything |
-| `SPC a c` | cursor-open-chat | Open chat window |
-| `SPC a f` | cursor-fix-at-point | Fix code at cursor |
-| `SPC a e` | cursor-explain-region | Explain selection |
+| `SPC c k` | cursor-ask-agent | Ask anything |
+| `SPC c c` | cursor-open-chat | Open chat window |
+| `SPC c f` | cursor-fix-at-point | Fix code at cursor |
+| `SPC c e` | cursor-explain-region | Explain selection |
+| `SPC c v` | cursor-show-context | View context to be sent |
+| `SPC c S` | cursor-set-context-scope | Set context scope |
 
 (Replace `SPC` with `C-c` for vanilla Emacs)
+
+## Context Management
+
+Control what context is sent to the AI agent:
+
+1. **View Context**: `SPC c v` shows what will be sent
+2. **Set Scope**: `SPC c S` to choose:
+   - `buffer` - Basic buffer info (default)
+   - `region` - Only selected text
+   - `function` - Current function at point
+   - `project` - Project-level context
 
 ## Troubleshooting
 
