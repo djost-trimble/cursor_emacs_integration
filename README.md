@@ -25,7 +25,7 @@ A comprehensive Doom Emacs package that integrates Cursor's AI agent system dire
 └───────┼─────────────────────┼───────┘
         │         HTTP/WS     │
 ┌───────┴─────────────────────┴───────┐
-│    Cursor Bridge Service (Node.js)  │
+│    Cursor Bridge Service (Python)   │
 │  ┌──────────┐  ┌────────────────┐  │
 │  │  HTTP    │  │   WebSocket    │  │
 │  │  Server  │  │   Server       │  │
@@ -45,17 +45,35 @@ A comprehensive Doom Emacs package that integrates Cursor's AI agent system dire
 ### Prerequisites
 
 - Emacs 27.1 or later
-- Node.js 18.0 or later
+- Python 3.8 or later
+- [uv](https://github.com/astral-sh/uv) - Fast Python package installer
 - Doom Emacs (recommended) or vanilla Emacs
 
-### Step 1: Install the Bridge Service
+### Step 1: Install uv (if not already installed)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Or visit [uv installation docs](https://github.com/astral-sh/uv#installation) for other methods.
+
+### Step 2: Install the Bridge Service
 
 ```bash
 cd /path/to/package/bridge
-npm install
+uv venv
+source .venv/bin/activate
+uv pip install -e .
 ```
 
-### Step 2: Configure Environment
+Or simply use the startup script which handles everything:
+
+```bash
+cd /path/to/package/bridge
+./start.sh
+```
+
+### Step 3: Configure Environment
 
 Create a `.env` file in the bridge directory:
 
@@ -72,7 +90,7 @@ HTTP_PORT=8765
 WS_PORT=8766
 ```
 
-### Step 3: Install Emacs Package
+### Step 4: Install Emacs Package
 
 #### For Doom Emacs
 
@@ -114,17 +132,18 @@ Add to your `init.el`:
 (global-cursor-mode 1)
 ```
 
-### Step 4: Start the Bridge Service
+### Step 5: Start the Bridge Service
 
 ```bash
 cd /path/to/package/bridge
-npm start
+./start.sh
 ```
 
-Or for development with auto-reload:
+Or manually:
 
 ```bash
-npm run dev
+source .venv/bin/activate
+python3 server.py
 ```
 
 ## Usage
@@ -270,7 +289,9 @@ If you encounter frequent conflicts:
 Bridge service:
 ```bash
 cd bridge
-npm test
+source .venv/bin/activate
+uv pip install -e ".[dev]"
+python3 -m pytest
 ```
 
 Emacs (requires ERT):
@@ -279,12 +300,6 @@ M-x ert RET cursor-
 ```
 
 ### Building
-
-Compile TypeScript:
-```bash
-cd bridge
-npm run build
-```
 
 Byte-compile Elisp:
 ```elisp
