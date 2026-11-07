@@ -110,8 +110,8 @@ WS_PORT=8766
   
   ;; Keybindings
   (map! :leader
-        (:prefix ("a" . "cursor agent")
-         :desc "Ask agent" "a" #'cursor-ask-agent
+        (:prefix ("c" . "cursor agent")
+         :desc "Ask agent" "k" #'cursor-ask-agent
          :desc "Open chat" "c" #'cursor-open-chat
          :desc "Fix at point" "f" #'cursor-fix-at-point
          :desc "Explain region" "e" #'cursor-explain-region
@@ -150,24 +150,24 @@ python3 server.py
 
 ### Basic Commands
 
-- `M-x cursor-ask-agent` (C-c a a): Ask the agent a question
-- `M-x cursor-open-chat` (C-c a c): Open the chat interface
-- `M-x cursor-fix-at-point` (C-c a f): Fix issue at cursor
-- `M-x cursor-explain-region` (C-c a e): Explain selected code
-- `M-x cursor-refactor-region` (C-c a R): Refactor selected code
+- `M-x cursor-ask-agent` (C-c c k): Ask the agent a question
+- `M-x cursor-open-chat` (C-c c c): Open the chat interface
+- `M-x cursor-fix-at-point` (C-c c f): Fix issue at cursor
+- `M-x cursor-explain-region` (C-c c e): Explain selected code
+- `M-x cursor-refactor-region` (C-c c R): Refactor selected code
 
 ### Session Management
 
-- `M-x cursor-start-session` (C-c a s): Create new session
-- `M-x cursor-resume-session` (C-c a r): Resume existing session
-- `M-x cursor-list-sessions` (C-c a l): List all sessions
-- `M-x cursor-end-session` (C-c a q): End current session
+- `M-x cursor-start-session` (C-c c s): Create new session
+- `M-x cursor-resume-session` (C-c c r): Resume existing session
+- `M-x cursor-list-sessions` (C-c c l): List all sessions
+- `M-x cursor-end-session` (C-c c q): End current session
 
 ### File Synchronization
 
-- `M-x cursor-sync-push` (C-c a p): Push buffer to agent
-- `M-x cursor-sync-pull` (C-c a P): Pull changes from agent
-- `M-x cursor-sync-status` (C-c a S): Check sync status
+- `M-x cursor-sync-push` (C-c c p): Push buffer to agent
+- `M-x cursor-sync-pull` (C-c c P): Pull changes from agent
+- `M-x cursor-sync-status` (C-c c S): Check sync status
 
 ### Evil Mode Keybindings
 

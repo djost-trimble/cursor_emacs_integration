@@ -38,25 +38,25 @@
 ;;; Keybindings
 
 ;; Global keybindings
-(global-set-key (kbd "C-c a a") 'cursor-ask-agent)
-(global-set-key (kbd "C-c a c") 'cursor-open-chat)
-(global-set-key (kbd "C-c a f") 'cursor-fix-at-point)
-(global-set-key (kbd "C-c a e") 'cursor-explain-region)
-(global-set-key (kbd "C-c a R") 'cursor-refactor-region)
-(global-set-key (kbd "C-c a o") 'cursor-optimize-function)
-(global-set-key (kbd "C-c a t") 'cursor-generate-tests)
-(global-set-key (kbd "C-c a d") 'cursor-generate-docstring)
+(global-set-key (kbd "C-c c k") 'cursor-ask-agent)
+(global-set-key (kbd "C-c c c") 'cursor-open-chat)
+(global-set-key (kbd "C-c c f") 'cursor-fix-at-point)
+(global-set-key (kbd "C-c c e") 'cursor-explain-region)
+(global-set-key (kbd "C-c c R") 'cursor-refactor-region)
+(global-set-key (kbd "C-c c o") 'cursor-optimize-function)
+(global-set-key (kbd "C-c c t") 'cursor-generate-tests)
+(global-set-key (kbd "C-c c d") 'cursor-generate-docstring)
 
 ;; Session management
-(global-set-key (kbd "C-c a s") 'cursor-start-session)
-(global-set-key (kbd "C-c a r") 'cursor-resume-session)
-(global-set-key (kbd "C-c a l") 'cursor-list-sessions)
-(global-set-key (kbd "C-c a q") 'cursor-end-session)
+(global-set-key (kbd "C-c c s") 'cursor-start-session)
+(global-set-key (kbd "C-c c r") 'cursor-resume-session)
+(global-set-key (kbd "C-c c l") 'cursor-list-sessions)
+(global-set-key (kbd "C-c c q") 'cursor-end-session)
 
 ;; Sync keybindings
-(global-set-key (kbd "C-c a p") 'cursor-sync-push)
-(global-set-key (kbd "C-c a P") 'cursor-sync-pull)
-(global-set-key (kbd "C-c a S") 'cursor-sync-status)
+(global-set-key (kbd "C-c c p") 'cursor-sync-push)
+(global-set-key (kbd "C-c c P") 'cursor-sync-pull)
+(global-set-key (kbd "C-c c S") 'cursor-sync-status)
 
 ;;; Integration with built-in modes
 
@@ -98,7 +98,7 @@
           (end (progn (end-of-defun) (point))))
       (cursor-explain-region start end))))
 
-(global-set-key (kbd "C-c a F") 'my/cursor-explain-function-at-point)
+(global-set-key (kbd "C-c c F") 'my/cursor-explain-function-at-point)
 
 (defun my/cursor-review-buffer ()
   "Ask cursor to review the entire buffer."
@@ -107,7 +107,7 @@
    (format "Review this code for potential issues:\n\n%s"
           (buffer-substring-no-properties (point-min) (point-max)))))
 
-(global-set-key (kbd "C-c a b") 'my/cursor-review-buffer)
+(global-set-key (kbd "C-c c b") 'my/cursor-review-buffer)
 
 ;;; Modeline Integration
 
@@ -145,7 +145,7 @@
          (format "Fix this error: %s"
                 (flycheck-error-message (car error)))))))
   
-  (global-set-key (kbd "C-c a F") 'my/cursor-fix-flycheck-error))
+  (global-set-key (kbd "C-c c X") 'my/cursor-fix-flycheck-error))
 
 ;; Markdown mode integration
 (when (require 'markdown-mode nil t)
@@ -165,7 +165,7 @@
          (format "Generate a commit message for:\n\n%s"
                 (substring diff 0 (min 2000 (length diff))))))))
   
-  (global-set-key (kbd "C-c a m") 'my/cursor-generate-commit-msg))
+  (global-set-key (kbd "C-c c m") 'my/cursor-generate-commit-msg))
 
 ;;; Performance Optimizations
 

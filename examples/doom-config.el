@@ -38,8 +38,8 @@
 ;; Doom-style leader key bindings
 
 (map! :leader
-      (:prefix ("a" . "cursor agent")
-       :desc "Ask agent" "a" #'cursor-ask-agent
+      (:prefix ("c" . "cursor agent")
+       :desc "Ask agent" "k" #'cursor-ask-agent
        :desc "Open chat" "c" #'cursor-open-chat
        :desc "Fix at point" "f" #'cursor-fix-at-point
        :desc "Explain region" "e" #'cursor-explain-region
@@ -201,10 +201,10 @@
 ;; Which-key integration
 (after! which-key
   (which-key-add-key-based-replacements
-    "SPC a" "cursor agent"
-    "SPC a p" "sync"
-    "SPC a s" "start session"
-    "SPC a r" "resume session"))
+    "SPC c" "cursor agent"
+    "SPC c p" "sync"
+    "SPC c s" "start session"
+    "SPC c r" "resume session"))
 
 ;;; Performance Optimizations
 
@@ -230,9 +230,9 @@
 
 ;; Keyboard macro for common workflows
 (fset 'my/cursor-review-and-apply
-     "\C-c a e\C-x o\C-x o")  ; Explain, switch to chat, switch back
+     "\C-c c e\C-x o\C-x o")  ; Explain, switch to chat, switch back
 
-(global-set-key (kbd "C-c a x") 'my/cursor-review-and-apply)
+(global-set-key (kbd "C-c c x") 'my/cursor-review-and-apply)
 
 ;;; Hook Examples
 
