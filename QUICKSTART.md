@@ -5,7 +5,7 @@ Get up and running with Cursor Emacs Integration in 5 minutes.
 ## Prerequisites
 
 - Emacs 27.1+ 
-- Node.js 18.0+
+- Python 3.8+
 - Doom Emacs (optional but recommended)
 
 ## Installation Steps
@@ -14,7 +14,9 @@ Get up and running with Cursor Emacs Integration in 5 minutes.
 
 ```bash
 cd /path/to/package/bridge
-npm install
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### 2. Configure API Key
@@ -63,12 +65,13 @@ Add to `~/.emacs.d/init.el`:
 
 ```bash
 cd /path/to/package/bridge
-npm start
+./start.sh
 ```
 
-Or use the startup script:
+Or manually:
 ```bash
-./start.sh
+source venv/bin/activate
+python3 server.py
 ```
 
 ### 5. Test in Emacs
